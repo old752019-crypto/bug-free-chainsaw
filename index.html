@@ -107,6 +107,9 @@
         .helpline-info small { font-size: 11px; color: #aaa; }
 
         #app-info-body { line-height: 1.6; color: #ddd; font-size: 14px; }
+        
+        /* New Update CSS for Dynamic Images */
+        .dynamic-img { width: 100%; border-radius: 10px; margin: 10px 0; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
@@ -364,6 +367,7 @@
             update(ref(db), updates).then(() => { alert(`অভিনন্দন! আপনি ৳${dailyAmount} মুনাফা পেয়েছেন।`); });
         };
 
+        // --- UPDATED APP INFO WITH IMAGE DETECTION ---
         window.openAppInfo = () => {
             document.getElementById('app-info-modal').style.display = 'flex';
             history.pushState(null, "");
@@ -373,8 +377,21 @@
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     infoTitle.innerText = data.title || "App Information";
-                    infoBody.innerHTML = (data.content || "কোনো তথ্য পাওয়া যায়নি।").replace(/\n/g, '<br>');
-                } else infoBody.innerText = "অ্যাডমিন কোনো তথ্য সেট করেনি।";
+                    let content = data.content || "কোনো তথ্য পাওয়া যায়নি।";
+                    
+                    // Regex to find image links (supporting common formats)
+                    const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp|svg))/gi;
+                    
+                    // Replace links with <img> tags
+                    content = content.replace(imgRegex, (url) => {
+                        return `<img src="${url}" class="dynamic-img" onerror="this.style.display='none'">`;
+                    });
+
+                    // Replace new lines with <br>
+                    infoBody.innerHTML = content.replace(/\n/g, '<br>');
+                } else {
+                    infoBody.innerText = "অ্যাডমিন কোনো তথ্য সেট করেনি।";
+                }
             });
         };
 
@@ -668,7 +685,6 @@
             }); 
         };
 
-        // --- UPDATED SIGNUP FUNCTION WITH REFERRAL LOGIC ---
         window.signup = () => { 
             const n = document.getElementById('s-name').value;
             const p = document.getElementById('s-phone').value;
