@@ -3,41 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Working Video Player</title>
+    <title>Video Fix Player</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <style>
-        body {
-            background-color: #111;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .video-box {
-            width: 90%;
-            max-width: 800px;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        body { background: #000; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { width: 100%; max-width: 800px; }
     </style>
 </head>
 <body>
 
-<div class="video-box">
-    <iframe 
-        src="https://drive.google.com/file/d/1KYBSAUbzDNSPdm-vQGYSG3N5qJxaQNm2/preview" 
-        allow="autoplay">
-    </iframe>
+<div class="container">
+    <video id="player" playsinline controls crossorigin="anonymous">
+        <source src="আপনার_লিঙ্ক_এখানে" type="video/mp4" />
+    </video>
 </div>
+
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+<script>
+    // প্লেয়ার কনফিগারেশন
+    const player = new Plyr('#player', {
+        ratio: '16:9',
+        settings: ['quality', 'speed']
+    });
+
+    // এরর হ্যান্ডলিং: যদি ভিডিও না আসে তবে পেজ রিফ্রেশ বা কনসোল চেক করবে
+    player.on('error', () => {
+        console.log("ভিডিও স্ট্রিম করতে সমস্যা হচ্ছে।");
+    });
+</script>
 
 </body>
 </html>
-
