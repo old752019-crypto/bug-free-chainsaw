@@ -4,53 +4,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Video Player</title>
+    <title>প্রফেশনাল ভিডিও প্লেয়ার</title>
     
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <style>
         body {
-            background-color: #0f0f0f;
+            background-color: #1a1a1a;
+            color: #fff;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
+            justify-content: center;
+            min-height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .container {
+        .video-box {
             width: 90%;
-            max-width: 800px;
+            max-width: 900px;
             background: #000;
-            border-radius: 10px;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        h2 {
-            color: white;
+        .header {
+            padding: 15px;
             text-align: center;
-            padding: 10px;
-            font-size: 18px;
+            background: #222;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>আপনার ভিডিওটি এখানে দেখুন</h2>
+<div class="video-box">
+    <div class="header">
+        <strong>আপনার ক্লাউড ভিডিও</strong>
+    </div>
     
-    <video id="player" playsinline controls data-poster="https://via.placeholder.com/800x450/000000/FFFFFF?text=Loading+Video...">
-        <source src="https://xcloud.christmas/apis/cloud/redirect/cVhPe-XVjK0-JIMHh-DZGdM-UzcyR-URlMj-kzeC9-vTTEz-U2pzV-TNSVD-FOeEc-zZmVw-SUVzM-Fk2V2-JEMWJ-sOEF4-M3NLM-2V5WX-FaSDd-3Ty9M-VGRlb-jBidm-FtaGc-9PQ==" type="video/mp4" />
-        
-        আপনার ব্রাউজারটি ভিডিও সাপোর্ট করছে না।
+    <video id="player" playsinline controls>
+        <source src="https://xcloud.christmas/apis/cloud/redirect/cVhPe-XVjK0-JIMHh-DZGdM-UzcyR-URlMj-kzeC9-vTTEz-U2pzV-TNSVD-FOeEc-zZmVw-SUVzM-Fk2V2-JEMWJ-sOEF4-M3NLM-2V5WX-FaSDd-3Ty9M-VGRlb-jBidm-FtaGc-9PQ==" type="video/mp4">
+        আপনার ব্রাউজারটি ভিডিও প্লে করতে পারছে না।
     </video>
 </div>
 
 <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 <script>
-    // প্লেয়ারটি সচল করার জন্য
-    const player = new Plyr('#player', {
-        controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
-        quality: { default: 576, options: [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240] }
+    const player = new Plyr('#player');
+    
+    // ভিডিও লোড করার সময় এরর হ্যান্ডলিং
+    player.on('error', (event) => {
+        console.error("ভিডিও লোড হতে সমস্যা হচ্ছে। সম্ভবত রিডাইরেক্ট লিঙ্কটি সরাসরি স্ট্রিমিং সাপোর্ট করছে না।");
+        alert("ভিডিওটি সরাসরি প্লে হতে পারছে না। এটি ডাউনলোড করে দেখতে হতে পারে।");
     });
 </script>
 
