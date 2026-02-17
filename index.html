@@ -1,62 +1,957 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>প্রফেশনাল ভিডিও প্লেয়ার</title>
-    
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>প্যারেন্টাল কন্ট্রোল প্যানেল - ওয়েব ভার্সন</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Hind Siliguri', sans-serif;
+        }
+
         body {
-            background-color: #1a1a1a;
-            color: #fff;
+            background: linear-gradient(145deg, #0B0B2B 0%, #1A1A3A 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .app-container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* হেডার */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .app-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .app-subtitle {
+            color: #A0A0C0;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        /* পারমিশন সেকশন */
+        .section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 25px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .section-title span {
+            font-size: 24px;
+        }
+
+        /* পারমিশন কার্ড */
+        .permission-grid {
             display: flex;
             flex-direction: column;
+            gap: 12px;
+        }
+
+        .permission-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .permission-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .permission-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            border-radius: 15px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .video-box {
-            width: 90%;
-            max-width: 900px;
+
+        .permission-details h4 {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .permission-details p {
+            color: #8888A0;
+            font-size: 12px;
+        }
+
+        .permission-status {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-granted {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-denied {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .permission-btn {
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .permission-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px #667EEA80;
+        }
+
+        .permission-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* কন্ট্রোল গ্রিড */
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .control-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border-radius: 25px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .control-card:hover {
+            transform: translateY(-5px);
+            background: linear-gradient(145deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+            border-color: rgba(102,126,234,0.5);
+        }
+
+        .control-icon {
+            font-size: 35px;
+            margin-bottom: 10px;
+        }
+
+        .control-title {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .control-desc {
+            color: #8888A0;
+            font-size: 11px;
+        }
+
+        /* ক্যামেরা ভিউ */
+        .camera-section {
             background: #000;
-            border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            border-radius: 30px;
+            overflow: hidden;
+            margin-top: 20px;
+            border: 2px solid rgba(102,126,234,0.3);
+            position: relative;
+        }
+
+        .camera-header {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .camera-title {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .close-camera {
+            background: rgba(255,59,48,0.8);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .camera-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 9/16;
+            background: #111;
+        }
+
+        #cameraFeed, #capturedImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #capturedImage {
+            display: none;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .cam-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .cam-btn.capture {
+            background: linear-gradient(135deg, #FF6B6B, #FF4757);
+            width: 70px;
+            height: 70px;
+            font-size: 28px;
+        }
+
+        .cam-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* গ্যালারি প্রিভিউ */
+        .gallery-preview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* নোটিফিকেশন */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 30px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            z-index: 9999;
+            max-width: 350px;
+            animation: slideIn 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            border-left: 4px solid #10B981;
+        }
+
+        .notification.error {
+            border-left: 4px solid #EF4444;
+        }
+
+        .notification.info {
+            border-left: 4px solid #3B82F6;
+        }
+
+        /* লোকেশন ইনফো */
+        .location-info {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .location-details {
+            color: white;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        /* মডাল */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 80%;
+            border-radius: 20px;
             overflow: hidden;
         }
-        .header {
-            padding: 15px;
-            text-align: center;
-            background: #222;
+
+        .modal-content img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* লোডিং */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #667EEA;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
+    <div class="app-container">
+        <!-- হেডার -->
+        <div class="header">
+            <div class="app-title">👶 প্যারেন্টাল কন্ট্রোল</div>
+            <div class="app-subtitle">আপনার সন্তানের ডিজিটাল নিরাপত্তা</div>
+        </div>
 
-<div class="video-box">
-    <div class="header">
-        <strong>আপনার ক্লাউড ভিডিও</strong>
+        <!-- পারমিশন সেকশন -->
+        <div class="section">
+            <div class="section-title">
+                <span>🔐</span>
+                প্রয়োজনীয় পারমিশন
+            </div>
+            
+            <div class="permission-grid" id="permissionGrid"></div>
+        </div>
+
+        <!-- কন্ট্রোল প্যানেল -->
+        <div class="section">
+            <div class="section-title">
+                <span>🎮</span>
+                কন্ট্রোল প্যানেল
+            </div>
+
+            <div class="control-grid">
+                <div class="control-card" onclick="openCamera()">
+                    <div class="control-icon">📷</div>
+                    <div class="control-title">ক্যামেরা</div>
+                    <div class="control-desc">লাইভ ভিউ ও ছবি</div>
+                </div>
+
+                <div class="control-card" onclick="getLocation()">
+                    <div class="control-icon">📍</div>
+                    <div class="control-title">লোকেশন</div>
+                    <div class="control-desc">বর্তমান অবস্থান</div>
+                </div>
+
+                <div class="control-card" onclick="openGallery()">
+                    <div class="control-icon">🖼️</div>
+                    <div class="control-title">গ্যালারি</div>
+                    <div class="control-desc">তোলা ছবি</div>
+                </div>
+
+                <div class="control-card" onclick="showAppList()">
+                    <div class="control-icon">📱</div>
+                    <div class="control-title">অ্যাপ লিস্ট</div>
+                    <div class="control-desc">ইনস্টল করা অ্যাপ</div>
+                </div>
+            </div>
+
+            <!-- লোকেশন ইনফো -->
+            <div class="location-info" id="locationInfo">
+                <div class="location-details" id="locationDetails"></div>
+            </div>
+
+            <!-- গ্যালারি প্রিভিউ -->
+            <div class="gallery-preview" id="galleryPreview"></div>
+        </div>
+
+        <!-- ক্যামেরা সেকশন (লুকানো) -->
+        <div class="camera-section" id="cameraSection" style="display: none;">
+            <div class="camera-header">
+                <span class="camera-title">📷 ক্যামেরা কন্ট্রোল</span>
+                <button class="close-camera" onclick="closeCamera()">✕</button>
+            </div>
+            
+            <div class="camera-container">
+                <video id="cameraFeed" autoplay playsinline></video>
+                <img id="capturedImage">
+                
+                <div class="camera-controls">
+                    <button class="cam-btn" onclick="toggleCamera()">🔄</button>
+                    <button class="cam-btn capture" onclick="capturePhoto()">📸</button>
+                    <button class="cam-btn" onclick="toggleFlash()">⚡</button>
+                </div>
+            </div>
+        </div>
     </div>
-    
-    <video id="player" playsinline controls>
-        <source src="https://xcloud.christmas/apis/cloud/redirect/cVhPe-XVjK0-JIMHh-DZGdM-UzcyR-URlMj-kzeC9-vTTEz-U2pzV-TNSVD-FOeEc-zZmVw-SUVzM-Fk2V2-JEMWJ-sOEF4-M3NLM-2V5WX-FaSDd-3Ty9M-VGRlb-jBidm-FtaGc-9PQ==" type="video/mp4">
-        আপনার ব্রাউজারটি ভিডিও প্লে করতে পারছে না।
-    </video>
-</div>
 
-<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
-<script>
-    const player = new Plyr('#player');
-    
-    // ভিডিও লোড করার সময় এরর হ্যান্ডলিং
-    player.on('error', (event) => {
-        console.error("ভিডিও লোড হতে সমস্যা হচ্ছে। সম্ভবত রিডাইরেক্ট লিঙ্কটি সরাসরি স্ট্রিমিং সাপোর্ট করছে না।");
-        alert("ভিডিওটি সরাসরি প্লে হতে পারছে না। এটি ডাউনলোড করে দেখতে হতে পারে।");
-    });
-</script>
+    <!-- মডাল -->
+    <div class="modal" id="imageModal" onclick="closeModal()">
+        <div class="modal-content">
+            <img id="modalImage" src="">
+        </div>
+        <button class="close-modal" onclick="closeModal()">✕</button>
+    </div>
 
+    <!-- নোটিফিকেশন -->
+    <div class="notification" id="notification">
+        <span id="notificationIcon">ℹ️</span>
+        <span id="notificationMessage"></span>
+    </div>
+
+    <script>
+        // পারমিশন স্টেট
+        let permissions = {
+            camera: false,
+            location: false,
+            microphone: false
+        };
+
+        // ক্যামেরা স্টেট
+        let currentStream = null;
+        let currentFacingMode = 'environment';
+        let flashOn = false;
+        let capturedPhotos = [];
+
+        // লোকাল স্টোরেজ থেকে তোলা ছবি লোড
+        function loadPhotos() {
+            const saved = localStorage.getItem('capturedPhotos');
+            if (saved) {
+                capturedPhotos = JSON.parse(saved);
+                updateGallery();
+            }
+        }
+
+        // গ্যালারি আপডেট
+        function updateGallery() {
+            const gallery = document.getElementById('galleryPreview');
+            gallery.innerHTML = '';
+
+            capturedPhotos.slice().reverse().slice(0, 8).forEach(photo => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.onclick = () => showImage(photo.data);
+                item.innerHTML = `<img src="${photo.data}" alt="Photo">`;
+                gallery.appendChild(item);
+            });
+
+            // যদি কোনো ছবি না থাকে
+            if (capturedPhotos.length === 0) {
+                for (let i = 0; i < 4; i++) {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    item.style.background = 'rgba(255,255,255,0.05)';
+                    item.style.display = 'flex';
+                    item.style.alignItems = 'center';
+                    item.style.justifyContent = 'center';
+                    item.style.color = '#666';
+                    item.innerHTML = '📷';
+                    gallery.appendChild(item);
+                }
+            }
+        }
+
+        // পারমিশন চেক
+        async function checkPermissions() {
+            // ক্যামেরা
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+                permissions.camera = true;
+            } catch (e) {
+                permissions.camera = false;
+            }
+
+            // লোকেশন
+            if ('geolocation' in navigator) {
+                permissions.location = true;
+            } else {
+                permissions.location = false;
+            }
+
+            // মাইক্রোফোন
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                permissions.microphone = true;
+            } catch (e) {
+                permissions.microphone = false;
+            }
+
+            updatePermissionUI();
+        }
+
+        // পারমিশন UI আপডেট
+        function updatePermissionUI() {
+            const grid = document.getElementById('permissionGrid');
+            
+            const permissionList = [
+                { id: 'camera', name: 'ক্যামেরা', icon: '📷', desc: 'ছবি ও ভিডিও' },
+                { id: 'location', name: 'লোকেশন', icon: '📍', desc: 'অবস্থান ট্র্যাকিং' },
+                { id: 'microphone', name: 'মাইক্রোফোন', icon: '🎤', desc: 'অডিও রেকর্ডিং' }
+            ];
+
+            grid.innerHTML = permissionList.map(perm => `
+                <div class="permission-card">
+                    <div class="permission-info">
+                        <div class="permission-icon">${perm.icon}</div>
+                        <div class="permission-details">
+                            <h4>${perm.name}</h4>
+                            <p>${perm.desc}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="permission-status ${permissions[perm.id] ? 'status-granted' : 'status-denied'}">
+                            ${permissions[perm.id] ? 'অনুমোদিত' : 'অনুমোদিত নয়'}
+                        </span>
+                        <button class="permission-btn" onclick="requestPermission('${perm.id}')" ${permissions[perm.id] ? 'disabled' : ''}>
+                            ${permissions[perm.id] ? 'দেওয়া হয়েছে' : 'অনুমতি দিন'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // পারমিশন রিকোয়েস্ট
+        async function requestPermission(type) {
+            try {
+                if (type === 'camera') {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    permissions.camera = true;
+                    showNotification('✅ ক্যামেরা পারমিশন দেওয়া হয়েছে', 'success');
+                } else if (type === 'location') {
+                    navigator.geolocation.getCurrentPosition(
+                        () => {
+                            permissions.location = true;
+                            showNotification('✅ লোকেশন পারমিশন দেওয়া হয়েছে', 'success');
+                            updatePermissionUI();
+                        },
+                        () => {
+                            showNotification('❌ লোকেশন পারমিশন দেওয়া হয়নি', 'error');
+                        }
+                    );
+                    return;
+                } else if (type === 'microphone') {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    permissions.microphone = true;
+                    showNotification('✅ মাইক্রোফোন পারমিশন দেওয়া হয়েছে', 'success');
+                }
+                
+                updatePermissionUI();
+            } catch (e) {
+                showNotification(`❌ ${type} পারমিশন দেওয়া হয়নি`, 'error');
+            }
+        }
+
+        // ক্যামেরা খোলা
+        async function openCamera() {
+            if (!permissions.camera) {
+                showNotification('📷 ক্যামেরা পারমিশন প্রয়োজন', 'error');
+                await requestPermission('camera');
+                if (!permissions.camera) return;
+            }
+
+            document.getElementById('cameraSection').style.display = 'block';
+            startCamera();
+        }
+
+        // ক্যামেরা চালু
+        async function startCamera() {
+            const cameraFeed = document.getElementById('cameraFeed');
+            
+            if (currentStream) {
+                stopCamera();
+            }
+
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraFeed.srcObject = currentStream;
+                showNotification('📷 ক্যামেরা চালু হয়েছে', 'success');
+            } catch (error) {
+                showNotification('❌ ক্যামেরা চালু করা যায়নি', 'error');
+                
+                // ব্যাক ক্যামেরা চেষ্টা
+                if (currentFacingMode === 'environment') {
+                    currentFacingMode = 'user';
+                    startCamera();
+                }
+            }
+        }
+
+        // ক্যামেরা বন্ধ
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        // ক্যামেরা বন্ধ (UI)
+        function closeCamera() {
+            stopCamera();
+            document.getElementById('cameraSection').style.display = 'none';
+            document.getElementById('cameraFeed').style.display = 'block';
+            document.getElementById('capturedImage').style.display = 'none';
+        }
+
+        // ক্যামেরা সুইচ
+        function toggleCamera() {
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            stopCamera();
+            startCamera();
+            showNotification('🔄 ক্যামেরা সুইচ করা হয়েছে', 'info');
+        }
+
+        // ফ্ল্যাশ টগল
+        function toggleFlash() {
+            flashOn = !flashOn;
+            showNotification(flashOn ? '⚡ ফ্ল্যাশ চালু' : '⚡ ফ্ল্যাশ বন্ধ', 'info');
+            
+            // ফ্ল্যাশ ইফেক্ট
+            if (flashOn) {
+                document.body.style.backgroundColor = '#fff';
+                setTimeout(() => {
+                    document.body.style.backgroundColor = '';
+                }, 100);
+            }
+        }
+
+        // ছবি তোলা
+        function capturePhoto() {
+            const cameraFeed = document.getElementById('cameraFeed');
+            const capturedImage = document.getElementById('capturedImage');
+            
+            if (!cameraFeed.srcObject) {
+                showNotification('❌ ক্যামেরা চালু নেই', 'error');
+                return;
+            }
+
+            // ফ্ল্যাশ ইফেক্ট
+            if (flashOn) {
+                document.body.style.backgroundColor = 'white';
+                setTimeout(() => {
+                    document.body.style.backgroundColor = '';
+                }, 100);
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraFeed.videoWidth;
+            canvas.height = cameraFeed.videoHeight;
+            canvas.getContext('2d').drawImage(cameraFeed, 0, 0);
+            
+            const photoData = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // প্রিভিউ দেখান
+            capturedImage.src = photoData;
+            capturedImage.style.display = 'block';
+            cameraFeed.style.display = 'none';
+            
+            // ছবি সংরক্ষণ
+            capturedPhotos.push({
+                id: Date.now(),
+                data: photoData,
+                timestamp: new Date().toLocaleString()
+            });
+            
+            // সর্বশেষ 20টি ছবি রাখি
+            if (capturedPhotos.length > 20) {
+                capturedPhotos = capturedPhotos.slice(-20);
+            }
+            
+            localStorage.setItem('capturedPhotos', JSON.stringify(capturedPhotos));
+            updateGallery();
+            
+            showNotification('✅ ছবি তোলা হয়েছে!', 'success');
+            
+            // 2 সেকেন্ড পরে প্রিভিউ বন্ধ
+            setTimeout(() => {
+                capturedImage.style.display = 'none';
+                cameraFeed.style.display = 'block';
+            }, 2000);
+        }
+
+        // লোকেশন পাওয়া
+        function getLocation() {
+            if (!permissions.location) {
+                showNotification('📍 লোকেশন পারমিশন প্রয়োজন', 'error');
+                requestPermission('location');
+                return;
+            }
+
+            showNotification('📍 লোকেশন সংগ্রহ করা হচ্ছে...', 'info');
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    const locationInfo = document.getElementById('locationInfo');
+                    const locationDetails = document.getElementById('locationDetails');
+                    
+                    locationDetails.innerHTML = `
+                        <strong>অক্ষাংশ:</strong> ${lat.toFixed(6)}<br>
+                        <strong>দ্রাঘিমাংশ:</strong> ${lng.toFixed(6)}<br>
+                        <strong>নির্ভুলতা:</strong> ±${accuracy.toFixed(1)} মিটার<br>
+                        <strong>সময়:</strong> ${new Date().toLocaleString()}<br>
+                        <button class="permission-btn" style="margin-top:10px;" onclick="window.open('https://www.google.com/maps?q=${lat},${lng}')">
+                            🗺️ ম্যাপে দেখুন
+                        </button>
+                    `;
+                    
+                    locationInfo.style.display = 'block';
+                    showNotification('✅ লোকেশন পাওয়া গেছে', 'success');
+                },
+                (error) => {
+                    let message = 'লোকেশন পাওয়া যায়নি';
+                    if (error.code === 1) message = 'পারমিশন দেওয়া হয়নি';
+                    if (error.code === 2) message = 'লোকেশন অফলাইনে আছে';
+                    if (error.code === 3) message = 'টাইমআউট';
+                    
+                    showNotification(`❌ ${message}`, 'error');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // গ্যালারি খোলা
+        function openGallery() {
+            if (capturedPhotos.length === 0) {
+                showNotification('🖼️ কোনো ছবি নেই', 'info');
+                return;
+            }
+            
+            // গ্যালারি ভিউ
+            const gallery = document.getElementById('galleryPreview');
+            gallery.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // অ্যাপ লিস্ট দেখান
+        function showAppList() {
+            const apps = [
+                '📱 ফেসবুক', '📱 হোয়াটসঅ্যাপ', '📱 ইউটিউব', '📱 ইনস্টাগ্রাম',
+                '📱 টিকটক', '📱 গেমস', '📱 ক্রোম', '📱 মেসেঞ্জার'
+            ];
+            
+            let message = 'ইনস্টল করা অ্যাপ:\n' + apps.map((app, i) => `${i+1}. ${app}`).join('\n');
+            alert(message);
+            showNotification('📱 ৮টি অ্যাপ ইনস্টল করা আছে', 'info');
+        }
+
+        // ছবি বড় করে দেখান
+        function showImage(data) {
+            document.getElementById('modalImage').src = data;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        // মডাল বন্ধ
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // নোটিফিকেশন দেখান
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const icon = document.getElementById('notificationIcon');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            notification.className = `notification ${type}`;
+            
+            switch(type) {
+                case 'success':
+                    icon.textContent = '✅';
+                    break;
+                case 'error':
+                    icon.textContent = '❌';
+                    break;
+                default:
+                    icon.textContent = 'ℹ️';
+            }
+            
+            messageEl.textContent = message;
+            notification.style.display = 'flex';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // ব্রাউজার সাপোর্ট চেক
+        function checkBrowserSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showNotification('⚠️ আপনার ব্রাউজার ক্যামেরা সাপোর্ট করে না', 'error');
+            }
+        }
+
+        // পেজ লোড হওয়ার পর
+        window.onload = function() {
+            checkBrowserSupport();
+            checkPermissions();
+            loadPhotos();
+            
+            // প্রতি 30 সেকেন্ডে পারমিশন চেক
+            setInterval(checkPermissions, 30000);
+        };
+
+        // উইন্ডো বন্ধ হলে ক্যামেরা বন্ধ
+        window.onbeforeunload = function() {
+            stopCamera();
+        };
+    </script>
 </body>
 </html>
