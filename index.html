@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>প্যারেন্টাল কন্ট্রোল প্যানেল - ওয়েব ভার্সন</title>
+    <title>বাচ্চার ডিভাইস - প্যারেন্টাল কন্ট্রোল</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -13,55 +19,121 @@
         }
 
         body {
-            background: linear-gradient(145deg, #0B0B2B 0%, #1A1A3A 100%);
+            background: linear-gradient(145deg, #1a2a6c, #b21f1f, #fdbb2d);
             min-height: 100vh;
             padding: 15px;
+            animation: gradientBG 15s ease infinite;
+            background-size: 400% 400%;
         }
 
-        .app-container {
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
             max-width: 450px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 40px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         /* হেডার */
-        .header {
+        .child-header {
             text-align: center;
             margin-bottom: 25px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .app-title {
+        .avatar {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            border: 4px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .child-name {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: white;
             margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .app-subtitle {
-            color: #A0A0C0;
+        .child-status {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(16, 185, 129, 0.3);
+            border: 1px solid #10B981;
+            border-radius: 50px;
+            color: white;
             font-size: 14px;
-            letter-spacing: 0.5px;
+            margin-top: 10px;
+        }
+
+        /* সংযোগ স্ট্যাটাস */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10B981;
+            box-shadow: 0 0 10px #10B981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .status-text {
+            color: white;
+            font-size: 14px;
+        }
+
+        .device-id {
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 50px;
         }
 
         /* পারমিশন সেকশন */
         .section {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 25px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .section-title {
@@ -70,15 +142,10 @@
             gap: 10px;
             margin-bottom: 20px;
             color: white;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
         }
 
-        .section-title span {
-            font-size: 24px;
-        }
-
-        /* পারমিশন কার্ড */
         .permission-grid {
             display: flex;
             flex-direction: column;
@@ -86,32 +153,31 @@
         }
 
         .permission-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.07);
             border-radius: 20px;
             padding: 15px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
 
         .permission-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
         }
 
         .permission-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #667eea20, #764ba220);
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
             border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .permission-details h4 {
@@ -121,7 +187,7 @@
         }
 
         .permission-details p {
-            color: #8888A0;
+            color: rgba(255,255,255,0.6);
             font-size: 12px;
         }
 
@@ -165,169 +231,64 @@
         .permission-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
-        /* কন্ট্রোল গ্রিড */
-        .control-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+        /* কন্ট্রোল রিসিভার */
+        .command-receiver {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 20px;
         }
 
-        .control-card {
-            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-            border-radius: 25px;
-            padding: 20px 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-        }
-
-        .control-card:hover {
-            transform: translateY(-5px);
-            background: linear-gradient(145deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
-            border-color: rgba(102,126,234,0.5);
-        }
-
-        .control-icon {
-            font-size: 35px;
-            margin-bottom: 10px;
-        }
-
-        .control-title {
+        .command-title {
             color: white;
             font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .control-desc {
-            color: #8888A0;
-            font-size: 11px;
+        .command-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .command-item {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            color: white;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .command-execute {
+            background: #10B981;
+            border: none;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
         }
 
         /* ক্যামেরা ভিউ */
         .camera-section {
-            background: #000;
-            border-radius: 30px;
-            overflow: hidden;
             margin-top: 20px;
-            border: 2px solid rgba(102,126,234,0.3);
-            position: relative;
-        }
-
-        .camera-header {
-            position: absolute;
-            top: 15px;
-            left: 0;
-            right: 0;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .camera-title {
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
-            padding: 8px 20px;
-            border-radius: 30px;
-            color: white;
-            font-size: 14px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .close-camera {
-            background: rgba(255,59,48,0.8);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .camera-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 9/16;
-            background: #111;
-        }
-
-        #cameraFeed, #capturedImage {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        #capturedImage {
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
             display: none;
         }
 
-        .camera-controls {
-            position: absolute;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            z-index: 10;
-        }
-
-        .cam-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-
-        .cam-btn.capture {
-            background: linear-gradient(135deg, #FF6B6B, #FF4757);
-            width: 70px;
-            height: 70px;
-            font-size: 28px;
-        }
-
-        .cam-btn:hover {
-            transform: scale(1.1);
-        }
-
-        /* গ্যালারি প্রিভিউ */
-        .gallery-preview {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        .gallery-item {
-            aspect-ratio: 1;
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer;
-        }
-
-        .gallery-item img {
+        #childCameraFeed {
             width: 100%;
-            height: 100%;
+            aspect-ratio: 9/16;
             object-fit: cover;
         }
 
@@ -336,202 +297,67 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
+            background: white;
             padding: 15px 25px;
             border-radius: 30px;
             display: none;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            gap: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             z-index: 9999;
-            max-width: 350px;
             animation: slideIn 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.3);
         }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .notification.success {
-            border-left: 4px solid #10B981;
-        }
-
-        .notification.error {
-            border-left: 4px solid #EF4444;
-        }
-
-        .notification.info {
-            border-left: 4px solid #3B82F6;
-        }
-
-        /* লোকেশন ইনফো */
-        .location-info {
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 15px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .location-details {
-            color: white;
-            font-size: 14px;
-            line-height: 1.8;
-        }
-
-        /* মডাল */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            backdrop-filter: blur(10px);
-        }
-
-        .modal-content {
-            max-width: 90%;
-            max-height: 80%;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-
-        .modal-content img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        /* লোডিং */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top-color: #667EEA;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
+    <div class="container">
         <!-- হেডার -->
-        <div class="header">
-            <div class="app-title">👶 প্যারেন্টাল কন্ট্রোল</div>
-            <div class="app-subtitle">আপনার সন্তানের ডিজিটাল নিরাপত্তা</div>
+        <div class="child-header">
+            <div class="avatar">👶</div>
+            <div class="child-name">আমার ডিভাইস</div>
+            <div class="connection-status">
+                <div class="status-dot"></div>
+                <span class="status-text">কানেক্টেড</span>
+            </div>
+            <div class="device-id" id="deviceId">আইডি: লোড হচ্ছে...</div>
         </div>
 
         <!-- পারমিশন সেকশন -->
         <div class="section">
             <div class="section-title">
-                <span>🔐</span>
-                প্রয়োজনীয় পারমিশন
+                <span>🔐</span> প্রয়োজনীয় পারমিশন
             </div>
             
             <div class="permission-grid" id="permissionGrid"></div>
         </div>
 
-        <!-- কন্ট্রোল প্যানেল -->
+        <!-- কমান্ড রিসিভার -->
         <div class="section">
             <div class="section-title">
-                <span>🎮</span>
-                কন্ট্রোল প্যানেল
-            </div>
-
-            <div class="control-grid">
-                <div class="control-card" onclick="openCamera()">
-                    <div class="control-icon">📷</div>
-                    <div class="control-title">ক্যামেরা</div>
-                    <div class="control-desc">লাইভ ভিউ ও ছবি</div>
-                </div>
-
-                <div class="control-card" onclick="getLocation()">
-                    <div class="control-icon">📍</div>
-                    <div class="control-title">লোকেশন</div>
-                    <div class="control-desc">বর্তমান অবস্থান</div>
-                </div>
-
-                <div class="control-card" onclick="openGallery()">
-                    <div class="control-icon">🖼️</div>
-                    <div class="control-title">গ্যালারি</div>
-                    <div class="control-desc">তোলা ছবি</div>
-                </div>
-
-                <div class="control-card" onclick="showAppList()">
-                    <div class="control-icon">📱</div>
-                    <div class="control-title">অ্যাপ লিস্ট</div>
-                    <div class="control-desc">ইনস্টল করা অ্যাপ</div>
-                </div>
-            </div>
-
-            <!-- লোকেশন ইনফো -->
-            <div class="location-info" id="locationInfo">
-                <div class="location-details" id="locationDetails"></div>
-            </div>
-
-            <!-- গ্যালারি প্রিভিউ -->
-            <div class="gallery-preview" id="galleryPreview"></div>
-        </div>
-
-        <!-- ক্যামেরা সেকশন (লুকানো) -->
-        <div class="camera-section" id="cameraSection" style="display: none;">
-            <div class="camera-header">
-                <span class="camera-title">📷 ক্যামেরা কন্ট্রোল</span>
-                <button class="close-camera" onclick="closeCamera()">✕</button>
+                <span>📨</span> প্যারেন্ট কমান্ড
             </div>
             
-            <div class="camera-container">
-                <video id="cameraFeed" autoplay playsinline></video>
-                <img id="capturedImage">
-                
-                <div class="camera-controls">
-                    <button class="cam-btn" onclick="toggleCamera()">🔄</button>
-                    <button class="cam-btn capture" onclick="capturePhoto()">📸</button>
-                    <button class="cam-btn" onclick="toggleFlash()">⚡</button>
+            <div class="command-receiver">
+                <div class="command-title">
+                    <span>⏳</span> অপেক্ষমাণ কমান্ড
+                </div>
+                <div class="command-list" id="commandList">
+                    <div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">
+                        কোনো কমান্ড নেই
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- মডাল -->
-    <div class="modal" id="imageModal" onclick="closeModal()">
-        <div class="modal-content">
-            <img id="modalImage" src="">
+        <!-- ক্যামেরা ভিউ -->
+        <div class="camera-section" id="cameraSection">
+            <video id="childCameraFeed" autoplay playsinline></video>
         </div>
-        <button class="close-modal" onclick="closeModal()">✕</button>
     </div>
 
     <!-- নোটিফিকেশন -->
@@ -541,95 +367,295 @@
     </div>
 
     <script>
-        // পারমিশন স্টেট
+        // ==================== ফায়ারবেস কনফিগারেশন ====================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // ফায়ারবেস ইনিশিয়ালাইজ
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const storage = firebase.storage();
+
+        // ==================== গ্লোবাল ভেরিয়েবল ====================
+        let deviceId = generateDeviceId();
         let permissions = {
             camera: false,
             location: false,
-            microphone: false
+            microphone: false,
+            storage: false
         };
-
-        // ক্যামেরা স্টেট
         let currentStream = null;
-        let currentFacingMode = 'environment';
-        let flashOn = false;
-        let capturedPhotos = [];
 
-        // লোকাল স্টোরেজ থেকে তোলা ছবি লোড
-        function loadPhotos() {
-            const saved = localStorage.getItem('capturedPhotos');
-            if (saved) {
-                capturedPhotos = JSON.parse(saved);
-                updateGallery();
-            }
+        // ==================== ডিভাইস আইডি জেনারেট ====================
+        function generateDeviceId() {
+            let saved = localStorage.getItem('device_id');
+            if (saved) return saved;
+            
+            let newId = 'DEVICE_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('device_id', newId);
+            return newId;
         }
 
-        // গ্যালারি আপডেট
-        function updateGallery() {
-            const gallery = document.getElementById('galleryPreview');
-            gallery.innerHTML = '';
-
-            capturedPhotos.slice().reverse().slice(0, 8).forEach(photo => {
-                const item = document.createElement('div');
-                item.className = 'gallery-item';
-                item.onclick = () => showImage(photo.data);
-                item.innerHTML = `<img src="${photo.data}" alt="Photo">`;
-                gallery.appendChild(item);
+        // ==================== ফায়ারবেসে ডিভাইস রেজিস্টার ====================
+        function registerDevice() {
+            document.getElementById('deviceId').textContent = 'আইডি: ' + deviceId;
+            
+            // ডিভাইস তথ্য ফায়ারবেসে সেভ
+            database.ref('devices/' + deviceId).set({
+                deviceId: deviceId,
+                deviceName: navigator.userAgent,
+                lastSeen: firebase.database.ServerValue.TIMESTAMP,
+                status: 'online',
+                permissions: permissions,
+                battery: 'unknown'
             });
+            
+            // ডিসকানেক্ট হ্যান্ডলার
+            database.ref('devices/' + deviceId).onDisconnect().update({
+                status: 'offline',
+                lastSeen: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            // প্রতি 30 সেকেন্ডে হেলথ চেক
+            setInterval(() => {
+                database.ref('devices/' + deviceId).update({
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP,
+                    status: 'online'
+                });
+            }, 30000);
+        }
 
-            // যদি কোনো ছবি না থাকে
-            if (capturedPhotos.length === 0) {
-                for (let i = 0; i < 4; i++) {
-                    const item = document.createElement('div');
-                    item.className = 'gallery-item';
-                    item.style.background = 'rgba(255,255,255,0.05)';
-                    item.style.display = 'flex';
-                    item.style.alignItems = 'center';
-                    item.style.justifyContent = 'center';
-                    item.style.color = '#666';
-                    item.innerHTML = '📷';
-                    gallery.appendChild(item);
+        // ==================== কমান্ড লিসেনার ====================
+        function listenForCommands() {
+            const commandsRef = database.ref('commands/' + deviceId);
+            
+            commandsRef.on('child_added', (snapshot) => {
+                const command = snapshot.val();
+                const commandId = snapshot.key;
+                
+                showNotification('📨 নতুন কমান্ড: ' + command.type, 'info');
+                addCommandToList(command, commandId);
+                processCommand(command, commandId);
+            });
+        }
+
+        // ==================== কমান্ড প্রসেস ====================
+        async function processCommand(command, commandId) {
+            switch(command.type) {
+                case 'REQUEST_PERMISSION':
+                    await requestPermission(command.permission);
+                    break;
+                    
+                case 'TAKE_PHOTO':
+                    await takePhoto(commandId);
+                    break;
+                    
+                case 'GET_LOCATION':
+                    await getLocation(commandId);
+                    break;
+                    
+                case 'START_CAMERA':
+                    await startCamera(commandId);
+                    break;
+                    
+                case 'STOP_CAMERA':
+                    stopCamera();
+                    break;
+                    
+                case 'LOCK_DEVICE':
+                    lockDevice();
+                    break;
+                    
+                case 'GET_BATTERY':
+                    await getBatteryStatus(commandId);
+                    break;
+            }
+            
+            // কমান্ড ডিলিট করুন
+            database.ref('commands/' + deviceId + '/' + commandId).remove();
+        }
+
+        // ==================== পারমিশন রিকোয়েস্ট ====================
+        async function requestPermission(type) {
+            try {
+                if (type === 'camera') {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    permissions.camera = true;
+                } else if (type === 'location') {
+                    await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject);
+                    });
+                    permissions.location = true;
+                } else if (type === 'microphone') {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    permissions.microphone = true;
                 }
+                
+                // ফায়ারবেসে আপডেট
+                database.ref('devices/' + deviceId + '/permissions').set(permissions);
+                updatePermissionUI();
+                showNotification('✅ পারমিশন দেওয়া হয়েছে', 'success');
+                
+            } catch (error) {
+                showNotification('❌ পারমিশন দেওয়া হয়নি', 'error');
             }
         }
 
-        // পারমিশন চেক
-        async function checkPermissions() {
-            // ক্যামেরা
+        // ==================== ছবি তোলা ====================
+        async function takePhoto(commandId) {
+            if (!permissions.camera) {
+                await requestPermission('camera');
+                if (!permissions.camera) return;
+            }
+            
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                await video.play();
+                
+                // ছবি তোলা
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                
+                const photoData = canvas.toDataURL('image/jpeg');
+                
+                // স্ট্রিম বন্ধ
                 stream.getTracks().forEach(track => track.stop());
-                permissions.camera = true;
-            } catch (e) {
-                permissions.camera = false;
+                
+                // ফায়ারবেস স্টোরেজে আপলোড
+                const photoRef = storage.ref('photos/' + deviceId + '/' + Date.now() + '.jpg');
+                const snapshot = await photoRef.putString(photoData.split(',')[1], 'base64', { contentType: 'image/jpeg' });
+                const downloadUrl = await snapshot.ref.getDownloadURL();
+                
+                // প্যারেন্টকে পাঠান
+                database.ref('responses/' + deviceId).push({
+                    type: 'PHOTO_CAPTURED',
+                    url: downloadUrl,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    commandId: commandId
+                });
+                
+                showNotification('📸 ছবি পাঠানো হয়েছে', 'success');
+                
+            } catch (error) {
+                showNotification('❌ ছবি তোলা যায়নি', 'error');
             }
-
-            // লোকেশন
-            if ('geolocation' in navigator) {
-                permissions.location = true;
-            } else {
-                permissions.location = false;
-            }
-
-            // মাইক্রোফোন
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                stream.getTracks().forEach(track => track.stop());
-                permissions.microphone = true;
-            } catch (e) {
-                permissions.microphone = false;
-            }
-
-            updatePermissionUI();
         }
 
-        // পারমিশন UI আপডেট
+        // ==================== লোকেশন পাওয়া ====================
+        async function getLocation(commandId) {
+            if (!permissions.location) {
+                await requestPermission('location');
+                if (!permissions.location) return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const locationData = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    };
+                    
+                    // ফায়ারবেসে পাঠান
+                    database.ref('responses/' + deviceId).push({
+                        type: 'LOCATION_UPDATE',
+                        data: locationData,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        commandId: commandId
+                    });
+                    
+                    showNotification('📍 লোকেশন পাঠানো হয়েছে', 'success');
+                },
+                (error) => {
+                    showNotification('❌ লোকেশন পাওয়া যায়নি', 'error');
+                }
+            );
+        }
+
+        // ==================== ক্যামেরা স্টার্ট ====================
+        async function startCamera(commandId) {
+            if (!permissions.camera) {
+                await requestPermission('camera');
+                if (!permissions.camera) return;
+            }
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                
+                currentStream = stream;
+                const video = document.getElementById('childCameraFeed');
+                video.srcObject = stream;
+                
+                document.getElementById('cameraSection').style.display = 'block';
+                
+                showNotification('📷 ক্যামেরা চালু হয়েছে', 'success');
+                
+            } catch (error) {
+                showNotification('❌ ক্যামেরা চালু হয়নি', 'error');
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                document.getElementById('cameraSection').style.display = 'none';
+            }
+        }
+
+        // ==================== ব্যাটারি স্ট্যাটাস ====================
+        async function getBatteryStatus(commandId) {
+            if ('getBattery' in navigator) {
+                const battery = await navigator.getBattery();
+                
+                database.ref('responses/' + deviceId).push({
+                    type: 'BATTERY_STATUS',
+                    data: {
+                        level: battery.level * 100,
+                        charging: battery.charging
+                    },
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    commandId: commandId
+                });
+            }
+        }
+
+        // ==================== ডিভাইস লক ====================
+        function lockDevice() {
+            document.body.style.filter = 'blur(10px)';
+            document.body.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                document.body.style.filter = 'none';
+                document.body.style.pointerEvents = 'auto';
+            }, 10000);
+            
+            showNotification('🔒 ডিভাইস ১০ সেকেন্ডের জন্য লক', 'info');
+        }
+
+        // ==================== ইউআই আপডেট ====================
         function updatePermissionUI() {
             const grid = document.getElementById('permissionGrid');
             
             const permissionList = [
                 { id: 'camera', name: 'ক্যামেরা', icon: '📷', desc: 'ছবি ও ভিডিও' },
                 { id: 'location', name: 'লোকেশন', icon: '📍', desc: 'অবস্থান ট্র্যাকিং' },
-                { id: 'microphone', name: 'মাইক্রোফোন', icon: '🎤', desc: 'অডিও রেকর্ডিং' }
+                { id: 'microphone', name: 'মাইক্রোফোন', icon: '🎤', desc: 'অডিও রেকর্ডিং' },
+                { id: 'storage', name: 'স্টোরেজ', icon: '💾', desc: 'ফাইল অ্যাক্সেস' }
             ];
 
             grid.innerHTML = permissionList.map(perm => `
@@ -645,284 +671,44 @@
                         <span class="permission-status ${permissions[perm.id] ? 'status-granted' : 'status-denied'}">
                             ${permissions[perm.id] ? 'অনুমোদিত' : 'অনুমোদিত নয়'}
                         </span>
-                        <button class="permission-btn" onclick="requestPermission('${perm.id}')" ${permissions[perm.id] ? 'disabled' : ''}>
-                            ${permissions[perm.id] ? 'দেওয়া হয়েছে' : 'অনুমতি দিন'}
-                        </button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // পারমিশন রিকোয়েস্ট
-        async function requestPermission(type) {
-            try {
-                if (type === 'camera') {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    stream.getTracks().forEach(track => track.stop());
-                    permissions.camera = true;
-                    showNotification('✅ ক্যামেরা পারমিশন দেওয়া হয়েছে', 'success');
-                } else if (type === 'location') {
-                    navigator.geolocation.getCurrentPosition(
-                        () => {
-                            permissions.location = true;
-                            showNotification('✅ লোকেশন পারমিশন দেওয়া হয়েছে', 'success');
-                            updatePermissionUI();
-                        },
-                        () => {
-                            showNotification('❌ লোকেশন পারমিশন দেওয়া হয়নি', 'error');
-                        }
-                    );
-                    return;
-                } else if (type === 'microphone') {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    stream.getTracks().forEach(track => track.stop());
-                    permissions.microphone = true;
-                    showNotification('✅ মাইক্রোফোন পারমিশন দেওয়া হয়েছে', 'success');
-                }
-                
-                updatePermissionUI();
-            } catch (e) {
-                showNotification(`❌ ${type} পারমিশন দেওয়া হয়নি`, 'error');
-            }
-        }
-
-        // ক্যামেরা খোলা
-        async function openCamera() {
-            if (!permissions.camera) {
-                showNotification('📷 ক্যামেরা পারমিশন প্রয়োজন', 'error');
-                await requestPermission('camera');
-                if (!permissions.camera) return;
-            }
-
-            document.getElementById('cameraSection').style.display = 'block';
-            startCamera();
-        }
-
-        // ক্যামেরা চালু
-        async function startCamera() {
-            const cameraFeed = document.getElementById('cameraFeed');
+        // ==================== কমান্ড লিস্ট আপডেট ====================
+        function addCommandToList(command, commandId) {
+            const list = document.getElementById('commandList');
+            const item = document.createElement('div');
+            item.className = 'command-item';
+            item.id = 'cmd_' + commandId;
             
-            if (currentStream) {
-                stopCamera();
-            }
-
-            try {
-                const constraints = {
-                    video: {
-                        facingMode: currentFacingMode,
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                };
-
-                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                cameraFeed.srcObject = currentStream;
-                showNotification('📷 ক্যামেরা চালু হয়েছে', 'success');
-            } catch (error) {
-                showNotification('❌ ক্যামেরা চালু করা যায়নি', 'error');
-                
-                // ব্যাক ক্যামেরা চেষ্টা
-                if (currentFacingMode === 'environment') {
-                    currentFacingMode = 'user';
-                    startCamera();
-                }
-            }
-        }
-
-        // ক্যামেরা বন্ধ
-        function stopCamera() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-                currentStream = null;
-            }
-        }
-
-        // ক্যামেরা বন্ধ (UI)
-        function closeCamera() {
-            stopCamera();
-            document.getElementById('cameraSection').style.display = 'none';
-            document.getElementById('cameraFeed').style.display = 'block';
-            document.getElementById('capturedImage').style.display = 'none';
-        }
-
-        // ক্যামেরা সুইচ
-        function toggleCamera() {
-            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-            stopCamera();
-            startCamera();
-            showNotification('🔄 ক্যামেরা সুইচ করা হয়েছে', 'info');
-        }
-
-        // ফ্ল্যাশ টগল
-        function toggleFlash() {
-            flashOn = !flashOn;
-            showNotification(flashOn ? '⚡ ফ্ল্যাশ চালু' : '⚡ ফ্ল্যাশ বন্ধ', 'info');
+            item.innerHTML = `
+                <span>📌 ${command.type}</span>
+                <button class="command-execute" onclick="executeNow('${commandId}')">এক্সিকিউট</button>
+            `;
             
-            // ফ্ল্যাশ ইফেক্ট
-            if (flashOn) {
-                document.body.style.backgroundColor = '#fff';
-                setTimeout(() => {
-                    document.body.style.backgroundColor = '';
-                }, 100);
-            }
-        }
-
-        // ছবি তোলা
-        function capturePhoto() {
-            const cameraFeed = document.getElementById('cameraFeed');
-            const capturedImage = document.getElementById('capturedImage');
-            
-            if (!cameraFeed.srcObject) {
-                showNotification('❌ ক্যামেরা চালু নেই', 'error');
-                return;
-            }
-
-            // ফ্ল্যাশ ইফেক্ট
-            if (flashOn) {
-                document.body.style.backgroundColor = 'white';
-                setTimeout(() => {
-                    document.body.style.backgroundColor = '';
-                }, 100);
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = cameraFeed.videoWidth;
-            canvas.height = cameraFeed.videoHeight;
-            canvas.getContext('2d').drawImage(cameraFeed, 0, 0);
-            
-            const photoData = canvas.toDataURL('image/jpeg', 0.9);
-            
-            // প্রিভিউ দেখান
-            capturedImage.src = photoData;
-            capturedImage.style.display = 'block';
-            cameraFeed.style.display = 'none';
-            
-            // ছবি সংরক্ষণ
-            capturedPhotos.push({
-                id: Date.now(),
-                data: photoData,
-                timestamp: new Date().toLocaleString()
-            });
-            
-            // সর্বশেষ 20টি ছবি রাখি
-            if (capturedPhotos.length > 20) {
-                capturedPhotos = capturedPhotos.slice(-20);
+            if (list.children[0]?.textContent === 'কোনো কমান্ড নেই') {
+                list.innerHTML = '';
             }
             
-            localStorage.setItem('capturedPhotos', JSON.stringify(capturedPhotos));
-            updateGallery();
-            
-            showNotification('✅ ছবি তোলা হয়েছে!', 'success');
-            
-            // 2 সেকেন্ড পরে প্রিভিউ বন্ধ
-            setTimeout(() => {
-                capturedImage.style.display = 'none';
-                cameraFeed.style.display = 'block';
-            }, 2000);
+            list.appendChild(item);
         }
 
-        // লোকেশন পাওয়া
-        function getLocation() {
-            if (!permissions.location) {
-                showNotification('📍 লোকেশন পারমিশন প্রয়োজন', 'error');
-                requestPermission('location');
-                return;
-            }
-
-            showNotification('📍 লোকেশন সংগ্রহ করা হচ্ছে...', 'info');
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const accuracy = position.coords.accuracy;
-                    
-                    const locationInfo = document.getElementById('locationInfo');
-                    const locationDetails = document.getElementById('locationDetails');
-                    
-                    locationDetails.innerHTML = `
-                        <strong>অক্ষাংশ:</strong> ${lat.toFixed(6)}<br>
-                        <strong>দ্রাঘিমাংশ:</strong> ${lng.toFixed(6)}<br>
-                        <strong>নির্ভুলতা:</strong> ±${accuracy.toFixed(1)} মিটার<br>
-                        <strong>সময়:</strong> ${new Date().toLocaleString()}<br>
-                        <button class="permission-btn" style="margin-top:10px;" onclick="window.open('https://www.google.com/maps?q=${lat},${lng}')">
-                            🗺️ ম্যাপে দেখুন
-                        </button>
-                    `;
-                    
-                    locationInfo.style.display = 'block';
-                    showNotification('✅ লোকেশন পাওয়া গেছে', 'success');
-                },
-                (error) => {
-                    let message = 'লোকেশন পাওয়া যায়নি';
-                    if (error.code === 1) message = 'পারমিশন দেওয়া হয়নি';
-                    if (error.code === 2) message = 'লোকেশন অফলাইনে আছে';
-                    if (error.code === 3) message = 'টাইমআউট';
-                    
-                    showNotification(`❌ ${message}`, 'error');
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
+        // ==================== ম্যানুয়াল এক্সিকিউট ====================
+        function executeNow(commandId) {
+            const item = document.getElementById('cmd_' + commandId);
+            if (item) item.remove();
         }
 
-        // গ্যালারি খোলা
-        function openGallery() {
-            if (capturedPhotos.length === 0) {
-                showNotification('🖼️ কোনো ছবি নেই', 'info');
-                return;
-            }
-            
-            // গ্যালারি ভিউ
-            const gallery = document.getElementById('galleryPreview');
-            gallery.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // অ্যাপ লিস্ট দেখান
-        function showAppList() {
-            const apps = [
-                '📱 ফেসবুক', '📱 হোয়াটসঅ্যাপ', '📱 ইউটিউব', '📱 ইনস্টাগ্রাম',
-                '📱 টিকটক', '📱 গেমস', '📱 ক্রোম', '📱 মেসেঞ্জার'
-            ];
-            
-            let message = 'ইনস্টল করা অ্যাপ:\n' + apps.map((app, i) => `${i+1}. ${app}`).join('\n');
-            alert(message);
-            showNotification('📱 ৮টি অ্যাপ ইনস্টল করা আছে', 'info');
-        }
-
-        // ছবি বড় করে দেখান
-        function showImage(data) {
-            document.getElementById('modalImage').src = data;
-            document.getElementById('imageModal').style.display = 'flex';
-        }
-
-        // মডাল বন্ধ
-        function closeModal() {
-            document.getElementById('imageModal').style.display = 'none';
-        }
-
-        // নোটিফিকেশন দেখান
+        // ==================== নোটিফিকেশন ====================
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
             const icon = document.getElementById('notificationIcon');
             const messageEl = document.getElementById('notificationMessage');
             
             notification.className = `notification ${type}`;
-            
-            switch(type) {
-                case 'success':
-                    icon.textContent = '✅';
-                    break;
-                case 'error':
-                    icon.textContent = '❌';
-                    break;
-                default:
-                    icon.textContent = 'ℹ️';
-            }
-            
+            icon.textContent = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
             messageEl.textContent = message;
             notification.style.display = 'flex';
             
@@ -931,26 +717,21 @@
             }, 3000);
         }
 
-        // ব্রাউজার সাপোর্ট চেক
-        function checkBrowserSupport() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showNotification('⚠️ আপনার ব্রাউজার ক্যামেরা সাপোর্ট করে না', 'error');
-            }
-        }
-
-        // পেজ লোড হওয়ার পর
+        // ==================== ইনিশিয়ালাইজ ====================
         window.onload = function() {
-            checkBrowserSupport();
-            checkPermissions();
-            loadPhotos();
+            registerDevice();
+            listenForCommands();
+            updatePermissionUI();
             
-            // প্রতি 30 সেকেন্ডে পারমিশন চেক
-            setInterval(checkPermissions, 30000);
-        };
-
-        // উইন্ডো বন্ধ হলে ক্যামেরা বন্ধ
-        window.onbeforeunload = function() {
-            stopCamera();
+            // ব্যাটারি তথ্য পাঠানো
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(battery => {
+                    database.ref('devices/' + deviceId + '/battery').set({
+                        level: battery.level * 100,
+                        charging: battery.charging
+                    });
+                });
+            }
         };
     </script>
 </body>
